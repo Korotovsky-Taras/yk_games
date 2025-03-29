@@ -7,25 +7,26 @@
     <title>Games</title>
 
     <script>
-      // https://github.com/rafgraph/spa-github-pages
-      ;(function (l) {
-        if (l.search[1] === '/') {
-          var decoded = l.search
-            .slice(1)
-            .split('&')
-            .map(function (s) {
-              return s.replace(/~and~/g, '&')
-            })
-            .join('?')
-          window.history.replaceState(
-            null,
-            null,
-            l.pathname.slice(0, -1) + decoded + l.hash
-          )
+      (function() {
+        // Проверяем, есть ли сохраненный путь
+        const redirectPath = sessionStorage.getItem('redirectPath');
+        if (redirectPath) {
+          sessionStorage.removeItem('redirectPath');
+          const cleanPath = redirectPath.split('?')[0].split('#')[0];
+          // Если путь есть в нашем приложении, используем его для перенаправления
+          if ([
+            '/',
+            '/puzzle',
+            '/drawing',
+            '/memory',
+            '/memory/game'
+          ].indexOf(cleanPath) !== -1) {
+            history.replaceState(null, null, redirectPath);
+          }
         }
-      })(window.location);
+      })();
     </script>
-    <script type="module" crossorigin src="./assets/index-BuqwlylL.js"></script>
+    <script type="module" crossorigin src="./assets/index-3rbR1d76.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-EpcoDimm.css">
   <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
   <body>
