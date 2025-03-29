@@ -4,81 +4,82 @@
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <title>Puzzle Game</title>
-    <link rel="manifest" href="/puzzle/assets/manifest-BCaHAxc3.json" crossorigin="use-credentials">
-    <link rel="icon" href="/puzzle/assets/favicon-DkLZMs_8.ico">
+    <link rel="icon" href="./assets/favicon-DkLZMs_8.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-  <script type="module" crossorigin src="/puzzle/assets/index-C-nwEXbG.js"></script>
-  <link rel="stylesheet" crossorigin href="/puzzle/assets/index-CVBZguJU.css">
+  <script type="module" crossorigin src="./assets/index-D83wceEP.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-duYGMigW.css">
 </head>
 
 <body>
 
 
-    <div id="canvas-wrap">
-        <canvas id="canvas"></canvas>
-        <canvas class="hide" id="image"></canvas>
-        <canvas class="hide" id="image-preview"></canvas>
-    </div>
+<div id="canvas-wrap">
+    <canvas id="canvas"></canvas>
+    <canvas class="hide" id="image"></canvas>
+    <canvas class="hide" id="image-preview"></canvas>
+</div>
 
 
-    <div class="hide" id="overlay"></div>
-    <div id="modal-window" class="hide">
-        <div id="modal-window-msg"></div>
-        <a href="#" id="modal-window-close" class="button">Закрыть</a>
-    </div>
+<div class="hide" id="overlay"></div>
+<div id="modal-window" class="hide">
+    <div id="modal-window-msg"></div>
+    <a href="#" id="modal-window-close" class="button">Закрыть</a>
+</div>
 
-    <div id="congrat" class="hide">
-        <h1>Поздравляем!</h1>
-        <h2>Вы успешно собрали пазл за: <span id="time"></span></h2>
-        <div>Желаете поиграть еще?</div>
-        <button>Выбирать игру</button>
-    </div>
+<div id="congrat" class="hide">
+    <h1>Поздравляем!</h1>
+    <h2>Вы успешно собрали пазл за: <span id="time"></span></h2>
+    <div>Желаете поиграть еще?</div>
+    <button>Выбирать игру</button>
+</div>
 
-    <div class="app-slider-panel" id="sidebar-panel">
-        <div class="app-slider-panel__header">
-            <div class="app-slider-hamburger__btn js-sidebar-open">
-                <div class="app-slider-hamburger__icon">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        </div>
-        <div class="app-slider-panel__body">
-            <div class="hide" id="create-puzzle">
-                <h1>Выберите файл</h1>
-                <form id="add-image-form">
-                    <input type="file" id="image-input">
-                    <p id="image-error">это не картинка</p>
-                    <p id="dnd"><i>или перетяните с компьютера</i></p>
-                </form>
+<div class="app-slider-panel" id="sidebar-panel">
+    <div class="app-slider-panel__header">
+        <div class="app-slider-hamburger__btn js-sidebar-open">
+            <div class="app-slider-hamburger__icon">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
         </div>
     </div>
+    <div class="app-slider-panel__body">
+        <div class="hide" id="create-puzzle">
+            <h1>Выберите файл</h1>
+            <form id="add-image-form">
+                <input type="file" id="image-input">
+                <p id="image-error">это не картинка</p>
+                <p id="dnd"><i>или перетяните с компьютера</i></p>
+            </form>
+        </div>
+    </div>
+</div>
 
-    <form class="hide" method="post" id="redirect-form">
-        <input type="text" name="time" id="t"/>
-        <input type="text" name="parts" id="p"/>
-    </form>
+<form class="hide" method="post" id="redirect-form">
+    <input type="text" name="time" id="t"/>
+    <input type="text" name="parts" id="p"/>
+</form>
 
-    <iframe class="hide" src="about:blank" id="save-score" name="save-score"></iframe>
+<iframe class="hide" src="about:blank" id="save-score" name="save-score"></iframe>
 
-    <b id="clock"></b>
+<b id="clock"></b>
 
-    <div class="app-footer" id="game-options">
-        <button id="START_GAME" class="app-btn app-footer__ab-right size-xl app-btn__primary" title="Начать игру">Начать игру</button>
-        <label for="set-parts">
-            <span>Сложность:</span>
-            <select id="set-parts" class="app-select"></select>
-        </label>
-        <label for="set-preview">
+<div class="app-footer" id="game-options">
+    <button id="START_GAME" class="app-btn app-footer__ab-right size-xl app-btn__primary" title="Начать игру">Начать
+        игру
+    </button>
+    <label for="set-parts">
+        <span>Сложность:</span>
+        <select id="set-parts" class="app-select"></select>
+    </label>
+    <label for="set-preview">
             <span class="app-checkbox">
-                <input type="checkbox" id="set-preview" class="app-btn size-xl app-btn__primary" title="Подсказка"  />
+                <input type="checkbox" id="set-preview" class="app-btn size-xl app-btn__primary" title="Подсказка"/>
                 <i class="app-checkbox__icon"></i>
             </span>
-            <span class="app-checkbox__text">Подсказка</span>
-        </label>
-    </div>
+        <span class="app-checkbox__text">Подсказка</span>
+    </label>
+</div>
 
 
 </body>
