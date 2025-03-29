@@ -1,1 +1,0 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/yk_games/sw.js', { scope: '/yk_games/' })})}
