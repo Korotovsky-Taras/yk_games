@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <title>Puzzle Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-  <script type="module" crossorigin src="./assets/index-BYv5X7xC.js"></script>
+  <script type="module" crossorigin src="./assets/index-CcjzpW2x.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-fw4wZKdE.css">
 </head>
 
@@ -25,10 +25,10 @@
         <h2 class="mt-1">Вы успешно собрали пазл за: <span id="time"></span></h2>
         <div class="mt-2 text-center">Желаете поиграть еще?</div>
         <div class="modal-window--footer">
-            <button class="app-btn size-xl app-btn__primary" title="Выбирать игру">
+            <button id="modal-window-choice" class="app-btn size-xl app-btn__primary" title="Выбирать игру">
                 Выбирать игру
             </button>
-            <button id="modal-window-close" class="app-btn size-xl app-btn__secondary">
+            <button id="modal-window-close" class="app-btn size-xl app-btn__secondary js-sidebar-skip--event">
                 Закрыть
             </button>
         </div>
@@ -48,6 +48,7 @@
     </div>
     <div class="app-slider-panel__body">
 
+        <a href="#" class="app-slider-selector"><img src="./images/0.jpg" alt="" /></a>
         <a href="#" class="app-slider-selector"><img src="./images/1.jpg" alt="" /></a>
         <a href="#" class="app-slider-selector"><img src="./images/2.jpg" alt="" /></a>
         <a href="#" class="app-slider-selector"><img src="./images/3.jpg" alt="" /></a>
