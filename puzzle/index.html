@@ -5,8 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <title>Puzzle Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-  <script type="module" crossorigin src="./assets/index-D6xpBvd8.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-C1qUnPSW.css">
+  <script type="module" crossorigin src="./assets/index-BYv5X7xC.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-fw4wZKdE.css">
 </head>
 
 <body>
@@ -20,16 +20,21 @@
 
 <div class="hide" id="overlay"></div>
 <div id="modal-window" class="hide">
-    <div id="modal-window-msg"></div>
-    <a href="#" id="modal-window-close" class="button">Закрыть</a>
+    <div class="modal-window--container">
+        <h1>Поздравляем!</h1>
+        <h2 class="mt-1">Вы успешно собрали пазл за: <span id="time"></span></h2>
+        <div class="mt-2 text-center">Желаете поиграть еще?</div>
+        <div class="modal-window--footer">
+            <button class="app-btn size-xl app-btn__primary" title="Выбирать игру">
+                Выбирать игру
+            </button>
+            <button id="modal-window-close" class="app-btn size-xl app-btn__secondary">
+                Закрыть
+            </button>
+        </div>
+    </div>
 </div>
 
-<div id="congrat" class="hide">
-    <h1>Поздравляем!</h1>
-    <h2>Вы успешно собрали пазл за: <span id="time"></span></h2>
-    <div>Желаете поиграть еще?</div>
-    <button>Выбирать игру</button>
-</div>
 
 <div class="app-slider-panel" id="sidebar-panel">
     <div class="app-slider-panel__header">
@@ -42,13 +47,20 @@
         </div>
     </div>
     <div class="app-slider-panel__body">
-        <div class="hide" id="create-puzzle">
-            <h1>Выберите файл</h1>
-            <form id="add-image-form">
-                <input type="file" id="image-input">
-                <p id="image-error">это не картинка</p>
-                <p id="dnd"><i>или перетяните с компьютера</i></p>
-            </form>
+
+        <a href="#" class="app-slider-selector"><img src="./images/1.jpg" alt="" /></a>
+        <a href="#" class="app-slider-selector"><img src="./images/2.jpg" alt="" /></a>
+        <a href="#" class="app-slider-selector"><img src="./images/3.jpg" alt="" /></a>
+        <a href="#" class="app-slider-selector"><img src="./images/4.jpg" alt="" /></a>
+
+        <div class="hide">
+            <div class="hide" id="create-puzzle">
+                <form id="add-image-form">
+                    <input type="file" id="image-input">
+                    <p id="image-error">это не картинка</p>
+                    <p id="dnd"><i>или перетяните с компьютера</i></p>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -60,11 +72,11 @@
 
 <iframe class="hide" src="about:blank" id="save-score" name="save-score"></iframe>
 
-<b id="clock"></b>
 
 <div class="app-footer" id="game-options">
-    <button id="START_GAME" class="app-btn app-footer__ab-right size-xl app-btn__primary" title="Начать игру">Начать
-        игру
+    <b id="clock"></b>
+    <button id="START_GAME" class="app-btn app-footer__ab-right size-xl app-btn__primary" title="Начать игру">
+        Начать игру
     </button>
     <label for="set-parts">
         <span>Сложность:</span>
