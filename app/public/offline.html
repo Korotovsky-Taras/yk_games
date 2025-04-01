@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games - Offline</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #152937;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 500px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">⚠️</div>
+        <h1>You are offline</h1>
+        <p>The page you're trying to view requires an internet connection. Please check your connection and try again.</p>
+        <p>You can still access previously visited pages while offline.</p>
+        <button onclick="window.location.href='/'">Go to Home</button>
+    </div>
+    <script>
+        // Check if we're back online
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+import clsx from 'clsx';
+import { ComponentProps } from 'react';
+import { Card } from '~/utils/memoryGame';
+import { Icon } from './Icon';
+
+type Props = {
+  card: Card;
+  size?: 'normal' | 'large';
+} & ComponentProps<'button'>;
+
+export function GridCard({ card, size = 'normal', onClick, ...rest }: Props) {
+  return (
+    <button
+      tabIndex={card.state === 'hidden' ? 0 : -1}
+      disabled={card.state !== 'hidden'}
+      value={card.value}
+      onClick={onClick}
+      className={clsx(
+        'transform-style-preserve-3d flex aspect-square items-center justify-center text-[2.5rem] font-bold transition-all duration-500 sm:text-[3.5rem]',
+        {
+          'rotate-y-180': card.state === 'visible' || card.state === 'revealed',
+        },
+        card.color,
+      )}
+      data-testid="grid-card"
+      {...rest}
+    >
+      <div
+        className={clsx('transform-style-preserve-3d relative h-full w-full rounded-[50%] transition-transform duration-500  focus:outline-none', {
+          'text-neutral-700': card.state === 'hidden' || card.state === 'revealed',
+          'bg-neutral-700': card.state === 'hidden' || card.state === 'revealed',
+          'text-2xl sm:text-[2.75rem]': size === 'normal',
+          'text-[2.5rem] sm:text-[3.5rem]': size === 'large',
+        })}
+      >
+        <div className="backface-hidden absolute flex h-full w-full items-center justify-center rounded-[50%]"></div>
+        <div className="backface-hidden transform-rotate-y-180 absolute flex h-full w-full items-center justify-center rounded-[50%] shadow-[inset_0_0_0_100px]">
+          <Icon
+            iconId={card.value}
+            className={clsx({
+              'max-w-5 sm:max-w-7 md:max-w-9 max-h-5 sm:max-h-7 md:max-h-9': size === 'normal',
+              'max-w-9 md:max-w-12 max-h-9 md:max-h-12': size === 'large',
+            })}
+          />
+        </div>
+      </div>
+    </button>
+  );
+}
