@@ -23,14 +23,14 @@ interface DeclensionRules {
 
 const DECLENSION_RULES: Record<WordForms, DeclensionRules> = {
   [WordForms.POINTS]: {
-    singular: 'балл',
-    dual: 'балла',
-    plural: 'баллов',
+    singular: 'бал',
+    dual: 'бала',
+    plural: 'балаў',
   },
   [WordForms.STEPS]: {
-    singular: 'шаг',
-    dual: 'шага',
-    plural: 'шагов',
+    singular: 'крок',
+    dual: 'кроку',
+    plural: 'крокаў',
   },
 };
 

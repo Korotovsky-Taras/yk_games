@@ -16,7 +16,7 @@ export function MultiPlayerGameOverDialog({ players, ...rest }: Props) {
   const isDraw = sortedPlayers[0].points === sortedPlayers[1].points;
 
   return (
-    <GameOverDialog title={isDraw ? 'Ничья!' : `Победа игрока ${sortedPlayers[0].name}!`} subtitle="Результаты игры:" {...rest}>
+    <GameOverDialog title={isDraw ? 'Нічыя!' : `Перамога гульца ${sortedPlayers[0].name}!`} subtitle="Вынікі гульні:" {...rest}>
       <div className="mt-[1.375rem] md:mt-[2.5rem] md:mb-4">
         {sortedPlayers.map((player) => {
           const isWinner = player.points === winnerPoints;
@@ -25,7 +25,7 @@ export function MultiPlayerGameOverDialog({ players, ...rest }: Props) {
             <InfoListItem
               appearance={isWinner ? 'primary' : 'secondary'}
               key={player.name}
-              label={`Игрок ${player.name}${isWinner ? ' (Победитель!)' : ''}`}
+              label={`Гулец ${player.name}${isWinner ? ' (Пераможца!)' : ''}`}
               value={getPointsWord(player.points)}
             ></InfoListItem>
           );

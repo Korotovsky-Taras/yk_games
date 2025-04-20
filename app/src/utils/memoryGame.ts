@@ -45,7 +45,7 @@ export function getPairCount(settings: MemorySettings) {
 }
 
 export function getPlayerColor(index: number): string {
-  return ['text-green-400', 'text-blue-400', 'text-purple-400', 'text-red-400'][index] || 'text-green-400';
+  return ['text-green-500', 'text-blue-500', 'text-purple-500', 'text-red-500'][index] || 'text-blue-500';
 }
 
 export function getPlayers(settings: MemorySettings) {

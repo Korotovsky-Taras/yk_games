@@ -12,9 +12,9 @@ type Props = {
 export function GameGrid({ cards, onCardClick, gridSize }: Props) {
   return (
     <div
-      className={clsx('my-6 grid gap-2 md:my-9', {
-        'grid-cols-4 sm:gap-5': gridSize === '4x4',
-        'grid-cols-6 sm:gap-3': gridSize === '6x6',
+      className={clsx('my-6 grid gap-1 md:my-9', {
+        'grid-cols-4': gridSize === '4x4',
+        'grid-cols-6': gridSize === '6x6',
       })}
     >
       {cards.map((card, index) => (

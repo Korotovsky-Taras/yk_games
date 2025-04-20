@@ -15,12 +15,12 @@ export function GameMenuDialog({ open, onClose, onRestart, onNewGame }: Props) {
   };
   return (
     <AppDialog open={open} onClose={onClose}>
-      <Button onClick={handleRestart}>Начать заново</Button>
+      <Button onClick={handleRestart}>Пачаць нанова</Button>
       <Button appearance="secondary" onClick={onNewGame} className="mt-3">
-        Новая игра
+        Новая гульня
       </Button>
       <Button appearance="secondary" onClick={onClose} className="mt-3">
-        Вернуться в игру
+        Вярнуцца ў гульню
       </Button>
     </AppDialog>
   );

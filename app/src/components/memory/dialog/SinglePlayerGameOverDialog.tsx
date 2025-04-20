@@ -13,10 +13,10 @@ type Props = {
 
 export function SinglePlayerGameOverDialog({ seconds, moves, ...rest }: Props) {
   return (
-    <GameOverDialog title="Победа!" subtitle="Результаты игры:" {...rest}>
+    <GameOverDialog title="Перамога!" subtitle="Вынікі гульні:" {...rest}>
       <div className="mt-6 sm:mt-10">
-        <InfoListItem appearance="secondary" label="Прошедшее время" value={formatTime(seconds)} valueClassName="timer" />
-        <InfoListItem appearance="secondary" label="Предпринятые шаги" value={getStepsWord(moves)} />
+        <InfoListItem appearance="secondary" label="Мінулы час" value={formatTime(seconds)} valueClassName="timer" />
+        <InfoListItem appearance="secondary" label="Прынятыя крокі" value={getStepsWord(moves)} />
       </div>
     </GameOverDialog>
   );

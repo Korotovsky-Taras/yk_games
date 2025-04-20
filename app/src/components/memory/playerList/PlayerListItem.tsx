@@ -29,7 +29,7 @@ export function PlayerListItem({ playerName, playerColor, points, isCurrent }: P
         <div className={clsx('flex flex-col items-center  xl:flex-row xl:items-center xl:justify-between ', isCurrent && 'text-[white]')}>
           <span className="font-bold sm:text-[0.9375rem] xl:text-[1.125rem]">
             <span className="sm:hidden">P</span>
-            <span className="hidden sm:inline">Игрок </span>
+            <span className="hidden sm:inline">Гулец </span>
             {playerName}
           </span>
           <span
@@ -47,7 +47,7 @@ export function PlayerListItem({ playerName, playerColor, points, isCurrent }: P
           { 'opacity-0': !isCurrent, 'opacity-100': isCurrent },
         )}
       >
-        Активный игрок
+        Актыўны гулец
       </p>
     </div>
   );

@@ -54,7 +54,7 @@ export function SinglePlayerGame({ settings, goToSettings }: Props) {
 
       <GameHeader onRestart={onRestart} goToSettings={goToSettings} />
 
-      <div className="mx-auto flex w-grid flex-1 flex-col sm:w-grid-sm sm:px-[2rem] sm:pb-[0.7rem] md:w-grid-md md:px-[4.6rem]">
+      <div className="mx-auto flex flex-1 flex-col justify-center sm:px-[2rem] lg:px-[0rem] max-w-[100%] w-[70vh]">
         <main className="flex flex-1 flex-col justify-center">
           <GameGrid cards={state.cards} gridSize={settings.grid} onCardClick={(index) => !isLocked && revealCard(index)} />
         </main>

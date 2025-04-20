@@ -10,8 +10,8 @@ export function MemoryRoot() {
       <div className="sm:max-h-unset mx-auto flex w-content flex-col justify-center pt-[0.875] pb-[2.625rem] sm:w-content-sm sm:pt-[1.5rem] sm:pb-[0.75rem] md:w-content-md">
         <header>
           <h1 className="flex items-center justify-center text-center text-[2rem] font-bold text-white sm:text-[2.5rem]">
-            <img className="w-[60px]" src={`./memory.png`} alt="Запоминания" />
-            <span className="pl-[20px]">Запоминания</span>
+            <img className="w-[60px]" src={`./memory.png`} alt="Запамінанні" />
+            <span className="pl-[20px]">Запамінанні</span>
           </h1>
         </header>
         <main className="mt-[3.25rem] sm:px-[1rem] md:mt-[4rem]">

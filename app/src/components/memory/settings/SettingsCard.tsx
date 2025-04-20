@@ -24,14 +24,14 @@ export function SettingsCard({ onDone, className, ...rest }: Props) {
       )}
       {...rest}
     >
-      <SettingLabel>Выберите число игроков</SettingLabel>
+      <SettingLabel>Абярыце колькасць гульцоў</SettingLabel>
       <Selector name="players" options={playersSettings} value={players} onChange={setPlayers} groupAriaLabel="Select number of players" />
 
-      <SettingLabel>Размер игры</SettingLabel>
+      <SettingLabel>Памер гульні</SettingLabel>
       <Selector name="grid-size" options={gridSettings} value={grid} onChange={setGrid} groupAriaLabel="Select grid size" />
 
       <Button onClick={onStartClick} className="mt-[3rem]">
-        Начать игру
+        Пачаць гульню
       </Button>
     </div>
   );

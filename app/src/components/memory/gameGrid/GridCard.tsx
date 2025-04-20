@@ -26,7 +26,7 @@ export function GridCard({ card, size = 'normal', onClick, ...rest }: Props) {
       {...rest}
     >
       <div
-        className={clsx('transform-style-preserve-3d relative h-full w-full rounded-[50%] transition-transform duration-500  focus:outline-none', {
+        className={clsx('transform-style-preserve-3d relative h-full w-full rounded-[16px] transition-transform duration-500  focus:outline-none', {
           'text-neutral-700': card.state === 'hidden' || card.state === 'revealed',
           'bg-neutral-700': card.state === 'hidden' || card.state === 'revealed',
           'text-2xl sm:text-[2.75rem]': size === 'normal',
@@ -34,13 +34,10 @@ export function GridCard({ card, size = 'normal', onClick, ...rest }: Props) {
         })}
       >
         <div className="backface-hidden absolute flex h-full w-full items-center justify-center rounded-[50%]"></div>
-        <div className="backface-hidden transform-rotate-y-180 absolute flex h-full w-full items-center justify-center rounded-[50%] shadow-[inset_0_0_0_100px]">
+        <div className="backface-hidden transform-rotate-y-180 absolute flex h-full w-full items-center justify-center rounded-[16px] shadow-[inset_0_0_0_100px]">
           <Icon
             iconId={card.value}
-            className={clsx({
-              'max-w-5 sm:max-w-7 md:max-w-9 max-h-5 sm:max-h-7 md:max-h-9': size === 'normal',
-              'max-w-9 md:max-w-12 max-h-9 md:max-h-12': size === 'large',
-            })}
+            className={'w-full h-full max-w-[95%] max-h-[95%] rounded-[14px]'}
           />
         </div>
       </div>

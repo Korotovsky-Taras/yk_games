@@ -31,16 +31,16 @@ export function UpdateButton() {
 
     try {
       setIsUpdating(true);
-      setUpdateStatus('Очистка кэша...');
+      setUpdateStatus('Ачыстка кэша...');
 
       // Очищаем все кэши
       await clearAllCaches();
       
-      setUpdateStatus('Обновление Service Worker...');
+      setUpdateStatus('Абнаўленне ...');
       // Обновляем Service Worker
       await updateServiceWorker();
       
-      setUpdateStatus('Перезагрузка приложения...');
+      setUpdateStatus('Перазагрузка ...');
       // Повторно регистрируем Service Worker для гарантии
       await registerServiceWorker();
 
@@ -50,7 +50,7 @@ export function UpdateButton() {
       }, 1000);
     } catch (error) {
       console.error('Ошибка при обновлении:', error);
-      setUpdateStatus('Ошибка обновления');
+      setUpdateStatus('Памылка абнаўлення');
       
       // Через 3 секунды сбрасываем состояние
       setTimeout(() => {
@@ -76,7 +76,7 @@ export function UpdateButton() {
         minWidth: '180px'
       }}
     >
-      {isUpdating ? `${updateStatus}` : 'Обновить приложение'}
+      {isUpdating ? `${updateStatus}` : 'Абнавіць дадатак'}
     </Button>
   );
 }

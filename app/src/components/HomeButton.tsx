@@ -5,7 +5,7 @@ export function HomeButton() {
 
   return (
     <button onClick={() => navigate('/', { replace: true })} className="fixed top-[2em] left-[3em]">
-      <img className="w-[60px]" src={`./home.svg`} alt="Домой" />
+      <img className="w-[60px]" src={`./home.svg`} alt="Дадому" />
     </button>
   );
 }

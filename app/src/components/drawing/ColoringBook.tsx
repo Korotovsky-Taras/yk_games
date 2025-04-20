@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import {Button} from "~/components/Button";
 
 interface ColorInfo {
   color: string;
@@ -12,21 +13,6 @@ interface Position {
   s: number; // размер кисти
 }
 
-interface PixelData {
-  occupiedPixels: boolean[];
-  coloredPixels: Map<string, number>; // Ключ: 'x,y', Значение: индекс цвета
-  width: number;
-  height: number;
-}
-
-interface ColoredArea {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  colorIndex: number;
-}
-
 interface ColoringBookProps {
   images: string[];
   colors?: ColorInfo[];
@@ -36,179 +22,183 @@ interface ColoringBookProps {
 }
 
 const DEFAULT_COLORS: ColorInfo[] = [
-  { color: 'rgba(87, 87, 87, 0.8)' },
-  { color: 'rgba(220, 35, 35, 0.8)' },
-  { color: 'rgba(42, 75, 215, 0.8)' },
-  { color: 'rgba(29, 105, 20, 0.8)' },
-  { color: 'rgba(129, 74, 25, 0.8)' },
-  { color: 'rgba(129, 38, 192, 0.8)' },
-  { color: 'rgba(160, 160, 160, 0.8)' },
-  { color: 'rgba(129, 197, 122, 0.8)' },
-  { color: 'rgba(157, 175, 255, 0.8)' },
-  { color: 'rgba(41, 208, 208, 0.8)' },
-  { color: 'rgba(255, 146, 51, 0.8)' },
-  { color: 'rgba(255, 238, 51, 0.8)' },
-  { color: 'rgba(233, 222, 187, 0.8)' },
-  { color: 'rgba(255, 205, 243, 0.8)' },
-  { color: 'rgba(255, 255, 255, 0.8)' }, // Ластик
+  { color: 'rgba(255, 255, 255)' },
+  { color: 'rgba(160, 160, 160)' },
+  { color: 'rgba(87, 87, 87)' },
+  { color: 'rgba(220, 35, 35)' },
+  { color: 'rgba(42, 75, 215)' },
+  { color: 'rgba(29, 105, 20)' },
+  { color: 'rgba(129, 74, 25)' },
+  { color: 'rgba(129, 38, 192)' },
+  { color: 'rgba(129, 197, 122)' },
+  { color: 'rgba(157, 175, 255)' },
+  { color: 'rgba(41, 208, 208)' },
+  { color: 'rgba(255, 146, 51)' },
+  { color: 'rgba(255, 238, 51)' },
+  { color: 'rgba(233, 222, 187)' },
+  { color: 'rgba(255, 205, 243)' },
 ];
 
-const ColoringBook = () => {
-  // Тестовые данные для примера
-  const defaultImages = [
-    '/drawing/astronaut.png',
-    '/drawing/eagle.png',
-    '/drawing/glass.jpg',
-  ];
+const defaultImages = [
+  './drawing/pic-01.jpg',
+  './drawing/pic-02.jpg',
+];
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const canvasContainerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const activeCanvasRef = useRef<HTMLCanvasElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
-  const colorMapRef = useRef<Map<string, number>>(new Map());
-  const originalPixelsRef = useRef<ImageData | null>(null);
+const images = defaultImages;
+const colors = DEFAULT_COLORS;
+const maxBrushSize = 42;
+const minBrushSize = 1;
+const initialBrushSize = maxBrushSize/2;
+
+
+const ColoringBookDeep = () => {
+
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement | null>(null);
+  const finalCanvasRef = useRef<HTMLCanvasElement | null>(null); // Финальный канвас с результатом
+  const drawingCanvasRef = useRef<HTMLCanvasElement | null>(null); // Канвас для временного рисования
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  // Ссылка на набор разрешенных пикселей (не черные области, которые можно закрашивать)
+  const allowedPixelsRef = useRef<Set<string>>(new Set());
+  // Ссылка на карту закрашенных пикселей и их цветов
+  const coloredPixelsRef = useRef<Map<string, string>>(new Map());
+
 
   const [dragging, setDragging] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
-  const [paths, setPaths] = useState<Position[][]>([]);
-  const [currentColor, setCurrentColor] = useState(1); // По умолчанию первый реальный цвет (второй элемент в массиве)
-  const [brushSize, setBrushSize] = useState(8);
+  const [currentPath, setCurrentPath] = useState<Position[]>([]);
+  const [currentColor, setCurrentColor] = useState(1);
+  const [brushSize, setBrushSize] = useState(initialBrushSize);
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [cursor, setCursor] = useState<string>('');
 
-  // Использование тестовых данных по умолчанию
-  const images = defaultImages;
-  const colors = DEFAULT_COLORS;
-  const maxBrushSize = 32;
-
-  // Throttle для обработки resize
-  const throttle = (func: Function, delay: number) => {
-    let timeout: number | null = null;
-
-    return (...args: any[]) => {
-      if (timeout === null) {
-        timeout = window.setTimeout(() => {
-          func(...args);
-          timeout = null;
-        }, delay);
-      }
+  // Функция для сохранения данных в localStorage
+  const saveToLocalStorage = useCallback(() => {
+    if (!selectedImage) {
+      console.log('Не удалось сохранить данные: не выбрано изображение');
+      return;
+    }
+    
+    const key = `coloringBook_${selectedImage}`;
+    const dataToSave = {
+      coloredPixels: Array.from(coloredPixelsRef.current.entries())
     };
-  };
 
+
+    try {
+      localStorage.setItem(key, JSON.stringify(dataToSave));
+      console.log(`Данные сохранены в localStorage с ключом: ${key}`);
+      console.log(`Сохранено ${coloredPixelsRef.current.size} закрашенных пикселей`);
+    } catch (e) {
+      console.error('Ошибка при сохранении данных в localStorage:', e);
+    }
+  }, [selectedImage]);
+  
+  // Функция для загрузки данных из localStorage
+  const loadFromLocalStorage = useCallback((imageSrc: string) => {
+    const key = `coloringBook_${imageSrc}`;
+    console.log(`Попытка загрузки данных из localStorage с ключом: ${key}`);
+    
+    const savedData = localStorage.getItem(key);
+    
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        console.log('Данные найдены в localStorage, парсинг...');
+
+        // Очищаем текущие данные
+        coloredPixelsRef.current.clear();
+        
+        // Восстанавливаем данные о закрашенных пикселях
+        if (parsedData.coloredPixels && Array.isArray(parsedData.coloredPixels)) {
+          coloredPixelsRef.current = new Map(parsedData.coloredPixels);
+          console.log(`Загружено ${coloredPixelsRef.current.size} закрашенных пикселей`);
+        }
+        
+        return true;
+      } catch (e) {
+        console.error('Ошибка при загрузке данных из localStorage:', e);
+      }
+    } else {
+      console.log('Данные не найдены в localStorage');
+    }
+    
+    return false;
+  }, []);
+  
+  // Функция для отрисовки закрашенных пикселей
+  const renderColoredPixelsFromMap = useCallback(() => {
+    console.log('Отрисовка закрашенных пикселей из Map...');
+    const finalCanvas = finalCanvasRef.current;
+    if (!finalCanvas) {
+      console.log('Ошибка: finalCanvas не найден');
+      return;
+    }
+    
+    const ctx = finalCanvas.getContext('2d');
+    if (!ctx) {
+      console.log('Ошибка: не удалось получить контекст канваса');
+      return;
+    }
+    
+    // Проверяем, есть ли пиксели для отрисовки
+    if (coloredPixelsRef.current.size === 0) {
+      console.log('Нет закрашенных пикселей для отрисовки');
+      return;
+    }
+    
+    console.log(`Отрисовка ${coloredPixelsRef.current.size} закрашенных пикселей`);
+    
+    // Обновляем канвас с сохраненными пикселями
+    coloredPixelsRef.current.forEach((color, pixelKey) => {
+      const [x, y] = pixelKey.split(',').map(Number);
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, 1, 1);
+    });
+  }, []);
+  
   // Инициализация выбранного изображения
   useEffect(() => {
     if (images && images.length > 0) {
-      setSelectedImage(images[0]);
+      const defaultImage = images[0];
+      setSelectedImage(defaultImage);
     }
-  }, []);
-
-  // Загрузка сохраненных путей из localStorage при изменении изображения
+  }, []);  // Убираем зависимость от loadFromLocalStorage
+  
+  // Отдельный useEffect для загрузки данных из localStorage после изменения selectedImage
   useEffect(() => {
     if (selectedImage) {
-      try {
-        const savedPaths = localStorage.getItem(`v2:${selectedImage}`);
-        if (savedPaths) {
-          setPaths(JSON.parse(savedPaths));
-        } else {
-          setPaths([]);
-        }
-      } catch (error) {
-        console.error('Error loading paths from localStorage:', error);
-        setPaths([]);
+      // Пытаемся загрузить данные из localStorage для выбранного изображения
+      console.log(`Загрузка данных для изображения: ${selectedImage}`);
+      loadFromLocalStorage(selectedImage);
+      
+      // Обновляем канвас, если изображение уже загружено
+      if (imgRef.current && imgRef.current.complete) {
+        renderColoredPixelsFromMap();
       }
     }
-  }, [selectedImage]);
+  }, [selectedImage, loadFromLocalStorage, renderColoredPixelsFromMap]);
+
 
   // Обновление курсора при изменении цвета или размера кисти
   useEffect(() => {
     updateCursor();
   }, [currentColor, brushSize, isPanning]);
 
-  // Обработчик изменения размера окна с троттлингом
-  const handleResize = useCallback(throttle(() => {
-    if (imgRef.current && canvasRef.current && activeCanvasRef.current) {
+  // Обработчик изменения размера окна
+  const handleResize = useCallback(() => {
+    if (imgRef.current && finalCanvasRef.current && drawingCanvasRef.current) {
       handleImageLoad();
-      if (selectedImage) {
-        try {
-          const savedPaths = localStorage.getItem(`v2:${selectedImage}`);
-          if (savedPaths) {
-            setPaths(JSON.parse(savedPaths));
-          } else {
-            setPaths([]);
-          }
-        } catch (error) {
-          console.error('Error loading paths from localStorage:', error);
-          setPaths([]);
-        }
-      }
     }
-  }, 200), [selectedImage]);
+  }, []);
 
-  // Добавляем обработчик изменения размера окна
   useEffect(() => {
     window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
     };
   }, [handleResize]);
-
-  // Обновление рисунка при изменении путей, изображения, зума или смещения
-  useEffect(() => {
-    if (selectedImage && canvasRef.current) {
-      refreshCanvas();
-    }
-  }, [paths, selectedImage]);
-
-  const refreshCanvas = () => {
-    const canvas = canvasRef.current;
-    const img = imgRef.current;
-
-    if (!canvas || !img || !img.complete) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Очистка холста
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Проверяем наличие путей перед обработкой
-    if (!paths || paths.length === 0) return;
-
-    // Отрисовка всех путей
-    for (let i = 0; i < paths.length; i++) {
-      const path = paths[i];
-      if (!path || path.length < 1) continue;
-
-      const colorIndex = path[0].c;
-      const strokeSize = path[0].s;
-
-      // Проверяем, что colorIndex в пределах допустимого диапазона
-      if (colorIndex >= 0 && colorIndex < colors.length) {
-        ctx.strokeStyle = colors[colorIndex].color;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.lineWidth = strokeSize * (img.naturalWidth / img.width);
-
-        if (colorIndex === colors.length - 1) {
-          // Ластик
-          ctx.globalCompositeOperation = "destination-out";
-          ctx.strokeStyle = 'white';
-        } else {
-          ctx.globalCompositeOperation = "source-over";
-        }
-
-        ctx.beginPath();
-        ctx.moveTo(path[0].x, path[0].y);
-
-        for (let j = 1; j < path.length; j++) {
-          ctx.lineTo(path[j].x, path[j].y);
-        }
-
-        ctx.stroke();
-      }
-    }
-  };
 
   const updateCursor = () => {
     if (isPanning) {
@@ -217,7 +207,7 @@ const ColoringBook = () => {
     }
 
     let size = brushSize;
-    if (size < 2) size = 2;
+    if (size < minBrushSize) size = minBrushSize;
     if (size > maxBrushSize) size = maxBrushSize;
 
     const canvas = document.createElement('canvas');
@@ -230,7 +220,6 @@ const ColoringBook = () => {
     context.beginPath();
     context.arc(16, 16, size / 2, 0, 2 * Math.PI, false);
 
-    // Защита от возможного undefined colorIndex
     const colorIndex = currentColor >= 0 && currentColor < colors.length ? currentColor : 0;
     context.fillStyle = colors[colorIndex].color;
 
@@ -253,62 +242,89 @@ const ColoringBook = () => {
 
   const handleImageLoad = () => {
     const img = imgRef.current;
-    const canvas = canvasRef.current;
-    const activeCanvas = activeCanvasRef.current;
+    const finalCanvas = finalCanvasRef.current;
+    const drawingCanvas = drawingCanvasRef.current;
     const container = canvasContainerRef.current;
 
-    if (!img || !canvas || !activeCanvas || !container) return;
+    if (!img || !finalCanvas || !drawingCanvas || !container) {
+      console.log('Ошибка: не удалось найти элементы для handleImageLoad');
+      return;
+    }
 
-    // Устанавливаем canvas по размеру изображения
+    console.log('Изображение загружено, настраиваем канвас...');
+
+    // Устанавливаем размеры канвасов по размеру изображения
     const imgNaturalWidth = img.naturalWidth || 400;
     const imgNaturalHeight = img.naturalHeight || 400;
 
-    // Устанавливаем размеры холста соответствующие реальным размерам изображения
-    canvas.width = imgNaturalWidth;
-    canvas.height = imgNaturalHeight;
-    activeCanvas.width = imgNaturalWidth;
-    activeCanvas.height = imgNaturalHeight;
+    finalCanvas.width = imgNaturalWidth;
+    finalCanvas.height = imgNaturalHeight;
+    drawingCanvas.width = imgNaturalWidth;
+    drawingCanvas.height = imgNaturalHeight;
 
-
-    // Установка стиля для изображения чтобы оно было по центру
+    // Центрируем изображение в контейнере
     img.style.maxWidth = '100%';
     img.style.maxHeight = '100%';
     img.style.display = 'block';
     img.style.margin = 'auto';
 
-    // Создаем временный канвас для анализа оригинального изображения
+    // Анализируем изображение для определения разрешенных пикселей
+    analyzeImageForAllowedPixels(imgNaturalWidth, imgNaturalHeight);
+
+    // Отрисовываем закрашенные пиксели из localStorage
+    renderColoredPixelsFromMap();
+  };
+
+  const analyzeImageForAllowedPixels = (width: number, height: number) => {
+    const img = imgRef.current;
+    if (!img) return;
+
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = imgNaturalWidth;
-    tempCanvas.height = imgNaturalHeight;
-    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = width;
+    tempCanvas.height = height;
+    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+
+    if (!tempCtx) return;
     
-    if (tempCtx) {
-      // Рисуем оригинальное изображение на временном канвасе
-      tempCtx.drawImage(img, 0, 0, imgNaturalWidth, imgNaturalHeight);
-      
-      // Получаем данные пикселей
-      const imgData = tempCtx.getImageData(0, 0, imgNaturalWidth, imgNaturalHeight);
-      console.log({imgData})
-      originalPixelsRef.current = imgData;
-      
-      // Очищаем карту цветов при загрузке нового изображения
-      colorMapRef.current.clear();
+    // Очищаем только набор разрешенных пикселей
+    // НЕ очищаем coloredPixelsRef, чтобы не потерять загруженные из localStorage данные
+    allowedPixelsRef.current.clear();
+
+    // Рисуем оригинальное изображение на временном канвасе
+    tempCtx.drawImage(img, 0, 0, width, height);
+
+    // Получаем данные пикселей
+    const imgData = tempCtx.getImageData(0, 0, width, height);
+    const pixels = imgData.data;
+
+    // Анализируем каждый пиксель изображения, чтобы найти разрешенные области
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+      const a = pixels[i + 3];
+
+      const x = (i / 4) % width;
+      const y = Math.floor((i / 4) / width);
+      const pixelKey = `${Math.floor(x)},${Math.floor(y)}`;
+
+      // Пиксель считается разрешенным, если он не черный (или почти черный) и не прозрачный
+      const isBlack = r < 50 && g < 50 && b < 50 && a > 0;
+      if (!isBlack && a > 0) {
+        allowedPixelsRef.current.add(pixelKey);
+      }
     }
 
-    refreshCanvas();
+    console.log(`Найдено ${allowedPixelsRef.current.size} разрешенных пикселей для закрашивания`);
   };
 
   const getCursorPosition = (e: React.MouseEvent | React.Touch): Position => {
-    const canvas = canvasRef.current;
+    const drawingCanvas = drawingCanvasRef.current;
     const img = imgRef.current;
     const wrapper = wrapperRef.current;
 
-    if (!canvas || !img || !wrapper) return { x: 0, y: 0, c: currentColor, s: brushSize };
+    if (!drawingCanvas || !img || !wrapper) return { x: 0, y: 0, c: currentColor, s: brushSize };
 
-    const rect = wrapper.getBoundingClientRect();
-    const scaleX = canvas.width / img.clientWidth;
-
-    // Получаем координаты с учетом зума и смещения
     return {
       x: e.nativeEvent.offsetX,
       y: e.nativeEvent.offsetY,
@@ -320,7 +336,6 @@ const ColoringBook = () => {
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    // Проверяем, нажата ли средняя кнопка мыши или Shift для режима перемещения
     if (e.button === 1 || e.shiftKey) {
       setIsPanning(true);
       setCursor('grabbing');
@@ -329,38 +344,21 @@ const ColoringBook = () => {
 
     const pos = getCursorPosition(e);
     setDragging(true);
-    setPaths(prevPaths => [...(prevPaths || []), [pos]]);
+    setCurrentPath([pos]);
+    drawPath([pos]);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     e.preventDefault();
 
-
     if (!dragging) return;
 
     const pos = getCursorPosition(e);
-
-    // Безопасное обновление путей с проверкой на undefined
-    setPaths(prevPaths => {
-      if (!prevPaths || prevPaths.length === 0) return [[pos]];
-
-      const newPaths = [...prevPaths];
-      const currentPathIndex = newPaths.length - 1;
-
-      if (currentPathIndex >= 0) {
-        const currentPath = newPaths[currentPathIndex] || [];
-        newPaths[currentPathIndex] = [...currentPath, pos];
-      }
-
-      return newPaths;
-    });
-
-    drawActivePath();
+    setCurrentPath(prev => [...prev, pos]);
+    drawPath([...currentPath, pos]);
   };
 
-  const handleMouseUp = (e: React.MouseEvent) => {
-    e.preventDefault();
-
+  const handleMouseUp = () => {
     if (isPanning) {
       setIsPanning(false);
       updateCursor();
@@ -368,18 +366,13 @@ const ColoringBook = () => {
     }
 
     if (dragging) {
-      commitActivePath();
-      try {
-        localStorage.setItem(`v2:${selectedImage}`, JSON.stringify(paths));
-      } catch (error) {
-        console.error('Error saving to localStorage:', error);
-      }
+      mergeDrawingToFinal();
+      setDragging(false);
+      setCurrentPath([]);
     }
-    setDragging(false);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Проверяем, нажато ли двумя пальцами для режима перемещения
     if (e.touches.length === 2) {
       e.preventDefault();
       setIsPanning(true);
@@ -392,13 +385,12 @@ const ColoringBook = () => {
       const touch = e.touches[0];
       const pos = getCursorPosition(touch);
       setDragging(true);
-      setPaths(prevPaths => [...(prevPaths || []), [pos]]);
+      setCurrentPath([pos]);
+      drawPath([pos]);
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    // Обработка перемещения (драга) на тачскрине
-
     if (e.touches.length >= 3) return;
 
     e.preventDefault();
@@ -406,28 +398,11 @@ const ColoringBook = () => {
 
     const touch = e.touches[0];
     const pos = getCursorPosition(touch);
-
-    // Безопасное обновление путей
-    setPaths(prevPaths => {
-      if (!prevPaths || prevPaths.length === 0) return [[pos]];
-
-      const newPaths = [...prevPaths];
-      const currentPathIndex = newPaths.length - 1;
-
-      if (currentPathIndex >= 0) {
-        const currentPath = newPaths[currentPathIndex] || [];
-        newPaths[currentPathIndex] = [...currentPath, pos];
-      }
-
-      return newPaths;
-    });
-
-    drawActivePath();
+    setCurrentPath(prev => [...prev, pos]);
+    drawPath([...currentPath, pos]);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    e.preventDefault();
-
+  const handleTouchEnd = () => {
     if (isPanning) {
       setIsPanning(false);
       updateCursor();
@@ -435,196 +410,144 @@ const ColoringBook = () => {
     }
 
     if (dragging) {
-      commitActivePath();
-      try {
-        localStorage.setItem(`v2:${selectedImage}`, JSON.stringify(paths));
-      } catch (error) {
-        console.error('Error saving to localStorage:', error);
-      }
+      mergeDrawingToFinal();
+      setDragging(false);
+      setCurrentPath([]);
     }
-    setDragging(false);
   };
 
-  const clearActivePath = () => {
-    const activeCanvas = activeCanvasRef.current;
-    if (!activeCanvas) return;
-
-    const ctx = activeCanvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.clearRect(0, 0, activeCanvas.width, activeCanvas.height);
-  };
-
-  const drawActivePath = (saveToCanvas = false) => {
-    clearActivePath();
-
-    const activeCanvas = activeCanvasRef.current;
-    const canvas = canvasRef.current;
+  const drawPath = (path: Position[]) => {
+    const drawingCanvas = drawingCanvasRef.current;
     const img = imgRef.current;
 
-    if (!activeCanvas || !canvas || !img) return;
+    if (!drawingCanvas || !img || path.length < 1) return;
 
-    // Защита от undefined путей
-    if (!paths || paths.length === 0) return;
-
-    const activePath = paths[paths.length - 1];
-    if (!activePath || activePath.length < 1) return;
-
-    // Определяем, какой canvas использовать
-    let ctx;
-    if (saveToCanvas || (activePath[0].c === (colors.length - 1))) {
-      ctx = canvas.getContext('2d');
-    } else {
-      ctx = activeCanvas.getContext('2d');
-    }
-
+    const ctx = drawingCanvas.getContext('2d');
     if (!ctx) return;
 
-    const colorIndex = activePath[0].c;
-    const strokeSize = activePath[0].s;
+    // Очищаем временный канвас
+    ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
 
-    // Проверяем валидность colorIndex
+    const colorIndex = path[0].c;
+    const strokeSize = path[0].s;
+
     if (colorIndex >= 0 && colorIndex < colors.length) {
       ctx.strokeStyle = colors[colorIndex].color;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-
-      // Устанавливаем толщину кисти с учетом зума
       ctx.lineWidth = strokeSize * (img.naturalWidth / img.width);
-
-      if (colorIndex === colors.length - 1) {
-        // Ластик
-        ctx.globalCompositeOperation = "destination-out";
-        ctx.strokeStyle = 'white';
-      } else {
-        ctx.globalCompositeOperation = "source-over";
-      }
+      ctx.globalCompositeOperation = "source-over";
 
       ctx.beginPath();
-      ctx.moveTo(activePath[0].x, activePath[0].y);
+      ctx.moveTo(path[0].x, path[0].y);
 
-      for (let j = 1; j < activePath.length; j++) {
-        ctx.lineTo(activePath[j].x, activePath[j].y);
+      for (let j = 1; j < path.length; j++) {
+        ctx.lineTo(path[j].x, path[j].y);
       }
 
       ctx.stroke();
     }
   };
 
-  const commitActivePath = () => {
-    const canvas = canvasRef.current;
+  const mergeDrawingToFinal = () => {
+    const finalCanvas = finalCanvasRef.current;
+    const drawingCanvas = drawingCanvasRef.current;
     const img = imgRef.current;
-    const colorMap = colorMapRef.current;
-    const originalPixels = originalPixelsRef.current;
-    
-    if (!canvas || !paths.length || !img) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    const activePath = paths[paths.length - 1];
-    if (!activePath || activePath.length < 1) return;
-    
-    const colorIndex = activePath[0].c;
-    const strokeSize = activePath[0].s;
-    
-    // Если это ластик или у нас нет оригинальных пикселей, просто рисуем как обычно
-    if (colorIndex === colors.length - 1 || !originalPixels) {
-      drawActivePath(true);
-      return;
-    }
-    
-    // Создаем временный канвас для проверки наложения
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
-    const tempCtx = tempCanvas.getContext('2d');
-    
-    if (!tempCtx) {
-      drawActivePath(true);
-      return;
-    }
-    
-    // Рисуем текущий путь на временном канвасе
-    tempCtx.strokeStyle = colors[colorIndex].color;
-    tempCtx.lineCap = 'round';
-    tempCtx.lineJoin = 'round';
-    tempCtx.lineWidth = strokeSize * (img.naturalWidth / img.width);
-    tempCtx.beginPath();
-    tempCtx.moveTo(activePath[0].x, activePath[0].y);
-    
-    for (let j = 1; j < activePath.length; j++) {
-      tempCtx.lineTo(activePath[j].x, activePath[j].y);
-    }
-    
-    tempCtx.stroke();
-    
-    // Получаем данные пикселей текущего пути
-    const pathData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
-    const pathPixels = pathData.data;
-    
-    // Получаем данные текущего канваса
-    const currentData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const currentPixels = currentData.data;
-    
-    // Проверяем наложение и применяем цвет только если нет конфликта с исходным изображением
-    // или с уже нарисованным тем же цветом
-    for (let i = 0; i < pathPixels.length; i += 4) {
-      const alpha = pathPixels[i + 3];
-      
-      if (alpha > 0) {
-        const x = (i / 4) % canvas.width;
-        const y = Math.floor((i / 4) / canvas.width);
-        const pixelKey = `${x},${y}`;
-        
-        // Проверяем, не рисовали ли мы уже этим цветом в этом месте
-        const existingColorIndex = colorMap.get(pixelKey);
-        
-        // Проверяем пиксель оригинального изображения
-        const originalAlpha = originalPixels.data[i + 3];
-        const originalIsTransparent = originalAlpha < 50; // Считаем прозрачным, если альфа меньше 50
-        
-        // Если на исходном изображении пиксель непрозрачный или уже закрашен тем же цветом, то пропускаем
-        if ((!originalIsTransparent && originalPixels.data[i] < 240 && originalPixels.data[i+1] < 240 && originalPixels.data[i+2] < 240) || existingColorIndex === colorIndex) {
-          continue;
-        }
-        
-        // Иначе закрашиваем пиксель и запоминаем его
-        currentPixels[i] = pathPixels[i];
-        currentPixels[i + 1] = pathPixels[i + 1];
-        currentPixels[i + 2] = pathPixels[i + 2];
-        currentPixels[i + 3] = pathPixels[i + 3];
-        
-        // Сохраняем информацию о цвете данного пикселя
-        colorMap.set(pixelKey, colorIndex);
+    const allowedPixels = allowedPixelsRef.current;
+    const coloredPixels = coloredPixelsRef.current;
+
+    if (!finalCanvas || !drawingCanvas || !img || currentPath.length < 1) return;
+
+    const finalCtx = finalCanvas.getContext('2d');
+    const drawingCtx = drawingCanvas.getContext('2d');
+    if (!finalCtx || !drawingCtx) return;
+
+    const colorIndex = currentPath[0].c;
+    const strokeSize = currentPath[0].s;
+
+    // Определяем границы области, в которой происходило рисование
+    let minX = Number.MAX_SAFE_INTEGER;
+    let minY = Number.MAX_SAFE_INTEGER;
+    let maxX = 0;
+    let maxY = 0;
+
+    // Находим границы области рисования, расширенные на размер кисти
+    currentPath.forEach(point => {
+      minX = Math.max(0, Math.min(minX, point.x - strokeSize));
+      minY = Math.max(0, Math.min(minY, point.y - strokeSize));
+      maxX = Math.min(drawingCanvas.width, Math.max(maxX, point.x + strokeSize));
+      maxY = Math.min(drawingCanvas.height, Math.max(maxY, point.y + strokeSize));
+    });
+
+    // Округляем границы до целых чисел
+    minX = Math.floor(minX);
+    minY = Math.floor(minY);
+    maxX = Math.ceil(maxX);
+    maxY = Math.ceil(maxY);
+
+    // Ширина и высота региона, который мы будем обрабатывать
+    const regionWidth = maxX - minX;
+    const regionHeight = maxY - minY;
+
+    // Получаем данные пикселей только для области, где происходило рисование
+    const drawingData = drawingCtx.getImageData(minX, minY, regionWidth, regionHeight);
+    const drawingPixels = drawingData.data;
+
+    // Получаем данные пикселей финального канваса для той же области
+    const finalData = finalCtx.getImageData(minX, minY, regionWidth, regionHeight);
+    const finalPixels = finalData.data;
+
+    // Обходим только пиксели в выделенной области
+    for (let i = 0; i < drawingPixels.length; i += 4) {
+      const alpha = drawingPixels[i + 3];
+      if (alpha === 0) continue; // Пропускаем прозрачные пиксели
+
+      // Вычисляем координаты пикселя относительно всего холста
+      const localX = (i / 4) % regionWidth;
+      const localY = Math.floor((i / 4) / regionWidth);
+      const x = minX + localX;
+      const y = minY + localY;
+      const pixelKey = `${x},${y}`;
+
+      // Проверяем, что пиксель либо является разрешенным для закрашивания,
+      // либо уже был закрашен ранее (чтобы избежать белых пикселей при повторной закраске)
+      if (allowedPixels.has(pixelKey) || coloredPixels.has(pixelKey)) {
+        // Копируем цвет из временного канваса в финальный
+        finalPixels[i] = drawingPixels[i];
+        finalPixels[i + 1] = drawingPixels[i + 1];
+        finalPixels[i + 2] = drawingPixels[i + 2];
+        finalPixels[i + 3] = drawingPixels[i + 3];
+        coloredPixels.set(pixelKey, colors[colorIndex].color);
       }
     }
-    
-    // Обновляем канвас с учетом примененных изменений
-    ctx.putImageData(currentData, 0, 0);
+
+
+
+    // Обновляем только измененную область финального канваса
+    finalCtx.putImageData(finalData, minX, minY);
+    // Очищаем временный канвас
+    drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+
+    // Сохраняем данные в localStorage при изменении закрашенных пикселей
+    saveToLocalStorage();
+    renderColoredPixelsFromMap();
   };
 
   const handleClearCanvas = () => {
-    setPaths([]);
-    // Очищаем карту цветов при очистке холста
-    colorMapRef.current.clear();
-    try {
-      localStorage.setItem(`v2:${selectedImage}`, JSON.stringify([]));
-    } catch (error) {
-      console.error('Error clearing localStorage:', error);
-    }
-  };
+    const finalCanvas = finalCanvasRef.current;
+    if (!finalCanvas) return;
 
-  const handleUndo = () => {
-    if (paths && paths.length > 0) {
-      const newPaths = [...paths];
-      newPaths.pop();
-      setPaths(newPaths);
-      try {
-        localStorage.setItem(`v2:${selectedImage}`, JSON.stringify(newPaths));
-      } catch (error) {
-        console.error('Error saving to localStorage after undo:', error);
-      }
+    const ctx = finalCanvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, finalCanvas.width, finalCanvas.height);
+    coloredPixelsRef.current.clear();
+    
+    // Удаляем сохраненные данные из localStorage
+    if (selectedImage) {
+      const key = `coloringBook_${selectedImage}`;
+      localStorage.removeItem(key);
+      console.log(`Удалены данные из localStorage с ключом: ${key}`);
     }
   };
 
@@ -641,9 +564,9 @@ const ColoringBook = () => {
 
   const getImageData = async (): Promise<string> => {
     const img = imgRef.current;
-    const canvas = canvasRef.current;
+    const finalCanvas = finalCanvasRef.current;
 
-    if (!img || !canvas) return '';
+    if (!img || !finalCanvas) return '';
 
     const height = img.naturalHeight || 400;
     const width = img.naturalWidth || 400;
@@ -659,35 +582,30 @@ const ColoringBook = () => {
     ctx.drawImage(img, 0, 0, width, height);
 
     // Отрисовка рисунка сверху
-    const drawingImage = await loadImage(canvas.toDataURL('image/png'));
+    const drawingImage = await loadImage(finalCanvas.toDataURL('image/png'));
     ctx.drawImage(drawingImage, 0, 0);
 
     return tempCanvas.toDataURL('image/png');
   };
 
-  const handleSave = async () => {
-    const dataUrl = await getImageData();
-
-    const link = document.createElement('a');
-    link.href = dataUrl;
-    link.download = 'ColoringBook.png';
-    link.click();
-  };
 
   const selectImage = (src: string) => {
+    console.log(`Выбор изображения: ${src}`);
+    // Очищаем текущий путь рисования
+    handleClearCanvas();
+    setCurrentPath([]);
+    // Очищаем данные перед загрузкой новых из localStorage
+    coloredPixelsRef.current.clear();
+    allowedPixelsRef.current.clear();
+
+    // Изменяем выбранное изображение
+    // Загрузка данных из localStorage произойдет в useEffect, зависящем от selectedImage
     setSelectedImage(src);
-    // При изменении изображения нужно очистить пути и сбросить canvas
-    setPaths([]);
-    // Очищаем карту цветов при смене изображения
-    colorMapRef.current.clear();
-    // Сбрасываем данные оригинальных пикселей
-    originalPixelsRef.current = null;
   };
 
   return (
       <>
-        {/* Основная область с канвасом (с вычетом toolbars) */}
-        <div className="flex-1 flex flex-col h-full pr-[80px] pb-[100px]" >
+        <div className="flex-1 flex flex-col h-full pr-[80px] pb-[100px]">
           {/* Верхняя панель для выбора изображений */}
           {images && images.length > 1 && (
               <div className="flex flex-wrap justify-center mb-2">
@@ -709,25 +627,23 @@ const ColoringBook = () => {
           <div className="flex-1 relative overflow-hidden flex justify-center items-center" ref={canvasContainerRef}>
             <div
                 className="absolute transform origin-center"
-                style={{
-                  cursor: cursor,
-                }}
+                style={{ cursor: cursor }}
                 ref={wrapperRef}
             >
-              <img
+              {selectedImage && <img
                   ref={imgRef}
                   src={selectedImage}
                   className="w-full h-full object-contain select-none"
                   onLoad={handleImageLoad}
                   alt="Фон холста раскраски"
                   draggable="false"
-              />
+              />}
               <canvas
-                  ref={canvasRef}
+                  ref={finalCanvasRef}
                   className="absolute top-0 left-0 w-full h-full pointer-events-none"
               />
               <canvas
-                  ref={activeCanvasRef}
+                  ref={drawingCanvasRef}
                   className="absolute top-0 left-0 w-full h-full"
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
@@ -738,78 +654,186 @@ const ColoringBook = () => {
                   onTouchEnd={handleTouchEnd}
               />
             </div>
+          </div>
+        </div>
 
+        <Button
+            size="small"
+            className="fixed right-10 top-10 "
+            onClick={handleClearCanvas}
+        >
+          Ачысціць
+        </Button>
+
+
+        <div className="fixed right-10 top-1/2 transform -translate-y-1/2 h-1/2 z-50">
+
+          <div
+              className="relative h-full flex flex-col items-center justify-center"
+              style={{ width: '60px' }}
+              onMouseDown={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const container = e.currentTarget;
+                let previewSize = brushSize;
+
+                const handleMouseMove = (moveEvent) => {
+                  const height = rect.height;
+                  const y = moveEvent.clientY - rect.top;
+                  const percentage = Math.max(0, Math.min(1, 1 - (y / height)));
+                  previewSize = Math.max(minBrushSize, Math.min(maxBrushSize, Math.round(percentage * maxBrushSize)));
+
+                  // Update preview visually using stored container reference
+                  const coloredTrack = container.querySelector('.colored-track');
+                  const currentIndicator = container.querySelector('.current-indicator');
+                  if (coloredTrack && currentIndicator) {
+                    coloredTrack.style.height = `${(previewSize / maxBrushSize) * 100}%`;
+                    currentIndicator.style.bottom = `${(previewSize / maxBrushSize) * 100}%`;
+                    currentIndicator.style.width = `${previewSize}px`;
+                  }
+                };
+
+                const handleMouseUp = (upEvent) => {
+                  const height = rect.height;
+                  const y = upEvent.clientY - rect.top;
+                  const percentage = Math.max(0, Math.min(1, 1 - (y / height)));
+                  const newSize = Math.max(minBrushSize, Math.min(maxBrushSize, Math.round(percentage * maxBrushSize)));
+                  setBrushSize(newSize);
+
+                  document.removeEventListener('mousemove', handleMouseMove);
+                  document.removeEventListener('mouseup', handleMouseUp);
+                };
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+              }}
+              onTouchStart={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const container = e.currentTarget;
+                let previewSize = brushSize;
+
+                const handleTouchMove = (moveEvent) => {
+                  if (moveEvent.touches.length > 0) {
+                    const touch = moveEvent.touches[0];
+                    const height = rect.height;
+                    const y = touch.clientY - rect.top;
+                    const percentage = Math.max(0, Math.min(1, 1 - (y / height)));
+                    previewSize = Math.max(minBrushSize, Math.min(maxBrushSize, Math.round(percentage * maxBrushSize)));
+
+                    // Update preview visually using stored container reference
+                    const coloredTrack = container.querySelector('.colored-track');
+                    const currentIndicator = container.querySelector('.current-indicator');
+                    if (coloredTrack && currentIndicator) {
+                      coloredTrack.style.height = `${(previewSize / maxBrushSize) * 100}%`;
+                      currentIndicator.style.bottom = `${(previewSize / maxBrushSize) * 100}%`;
+                      currentIndicator.style.width = `${previewSize}px`;
+                    }
+                  }
+                };
+
+                const handleTouchEnd = (endEvent) => {
+                  if (endEvent.changedTouches.length > 0) {
+                    const touch = endEvent.changedTouches[0];
+                    const height = rect.height;
+                    const y = touch.clientY - rect.top;
+                    const percentage = Math.max(0, Math.min(1, 1 - (y / height)));
+                    const newSize = Math.max(minBrushSize, Math.min(maxBrushSize, Math.round(percentage * maxBrushSize)));
+                    setBrushSize(newSize);
+                  }
+
+                  document.removeEventListener('touchmove', handleTouchMove);
+                  document.removeEventListener('touchend', handleTouchEnd);
+                };
+
+                document.addEventListener('touchmove', handleTouchMove);
+                document.addEventListener('touchend', handleTouchEnd);
+              }}
+          >
+
+            <div className="absolute h-full w-full">
+              {Array.from({ length: maxBrushSize }).map((_, i) => {
+                const level = i + 1;
+                const width = level;
+                return (
+                    <div
+                        key={i}
+                        className="absolute right-0 h-[3px] rounded-r bg-gray-300"
+                        style={{
+                          bottom: `${(level / maxBrushSize) * 100}%`,
+                          width: `${width}px`
+                        }}
+                    ></div>
+                );
+              })}
+            </div>
+
+            <div
+                className="absolute bottom-0 right-0 w-full colored-track"
+                style={{
+                  height: `${(brushSize / maxBrushSize) * 100}%`,
+                  backgroundColor: colors[currentColor]?.color || 'gray',
+                  opacity: 0.5
+                }}
+            ></div>
+
+            <div
+                className="absolute right-0 h-[3px] rounded-r current-indicator"
+                style={{
+                  bottom: `${(brushSize / maxBrushSize) * 100}%`,
+                  width: `${brushSize}px`,
+                  backgroundColor: colors[currentColor]?.color || 'gray',
+                  boxShadow: '0 0 3px rgba(0,0,0,0.5)'
+                }}
+            ></div>
           </div>
         </div>
 
 
-        {/* Колонка с выбором цветов справа */}
-        <div className="fixed top-0 right-0 w-20 p-2 flex flex-col space-y-2 overflow-y-auto">
-          {colors.map((colorInfo, index) => (
-              <div
-                  key={index}
-                  className={`aspect-square rounded-full cursor-pointer ${
-                      currentColor === index ? 'ring-2 ring-black transform scale-110' : 'ring-1 ring-gray-300'
-                  }`}
-                  style={{ backgroundColor: colorInfo.color }}
-                  onClick={() => setCurrentColor(index)}
-                  title={colorInfo.label}
-              />
-          ))}
-        </div>
-
         {/* Панель инструментов внизу */}
-        <div className="fixed bottom-0 left-0 right-0  p-4 flex flex-col">
-          {/* Инструменты */}
+        <div className="fixed bottom-0 left-0 right-0 flex flex-col">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <div className="flex flex-col items-center">
-                <label className="text-sm font-medium mb-1">Размер кисти: {brushSize}</label>
-                <input
-                    type="range"
-                    className="w-32"
-                    min="1"
-                    max={maxBrushSize}
-                    value={brushSize}
-                    onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                />
-              </div>
 
-              <div className="flex flex-col items-center">
-                <span className="text-sm font-medium mb-1">Текущий цвет</span>
-                <div
-                    className="w-8 h-8 rounded-full ring-1 ring-gray-400"
-                    style={{ backgroundColor: colors[currentColor]?.color || 'black' }}
-                />
-              </div>
+            {/* Колонка с карандашами для выбора цветов */}
+            <div className="top-0 right-0 bottom-0 h-32 px-20 flex flex-1 flex-row space-x-3 max-h-full overflow-hidden items-end place-content-around from-slate-100 to-slate-200 ">
+              {colors.map((colorInfo, index) => (
+                  <div
+                      key={index}
+                      className={`relative cursor-pointer transition-all duration-150 hover:translate-y-0 ${currentColor === index ? 'translate-y-0' : 'translate-y-[20px]'}`}
+                      onClick={() => setCurrentColor(index)}
+                      title={colorInfo.label || `Цвет ${index + 1}`}
+                  >
+                    {/* Карандаш */}
+                    <div className={`flex flex-col items-center ${currentColor === index ? 'opacity-100' : 'opacity-50'}`}>
+                      {/* Кончик карандаша */}
+                      <div className="w-12 h-4 relative mb-[-2px] z-10">
+                        <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden">
+                          <div
+                              className="w-12 h-12 transform rotate-45 translate-y-[-4px] translate-y-0"
+                              style={{ backgroundColor: colorInfo.color }}
+                          ></div>
+                        </div>
+                        {/* Тень для кончика */}
+                        <div className="absolute inset-0 bg-black opacity-10 overflow-hidden">
+                          <div className="w-8 h-8 transform rotate-45 translate-x-[-4px] translate-y-0"></div>
+                        </div>
+                      </div>
 
+                      {/* Основная часть карандаша */}
+                      <div className="flex w-12">
+                        <div
+                            className="w-12 h-20 shadow-sm"
+                            style={{ backgroundColor: colorInfo.color }}
+                        ></div>
+                      </div>
+                    </div>
+
+                  </div>
+              ))}
             </div>
-            <div className="flex space-x-2">
-              <button
-                  className="bg-gray-300 hover:bg-gray-400 rounded px-3 py-2 flex items-center"
-                  onClick={handleUndo}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a4 4 0 0 1 0 8H9" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 15l-4-4 4-4" />
-                </svg>
-                Отменить
-              </button>
 
-              <button
-                  className="bg-red-500 hover:bg-red-600 text-white rounded px-3 py-2 flex items-center"
-                  onClick={handleClearCanvas}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Очистить
-              </button>
-            </div>
           </div>
         </div>
       </>
   );
 };
 
-export default ColoringBook;
+export default ColoringBookDeep;

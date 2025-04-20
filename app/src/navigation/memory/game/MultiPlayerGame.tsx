@@ -46,7 +46,7 @@ export function MultiPlayerGame({ settings, goToSettings }: Props) {
 
       <GameHeader onRestart={onRestart} goToSettings={goToSettings} />
 
-      <main className="mx-auto flex w-grid flex-1 flex-col justify-center sm:w-grid-sm sm:px-[4.6rem] md:w-grid-md">
+      <main className="mx-auto flex flex-1 flex-col justify-center sm:px-[2rem] lg:px-[0rem] max-w-[100%] w-[70vh]">
         <GameGrid cards={state.cards} gridSize={settings.grid} onCardClick={(index) => !isLocked && revealCard(index)} />
       </main>
 
