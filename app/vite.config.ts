@@ -48,8 +48,8 @@ export default defineConfig(({command, mode}) => {
                 ]
             },
             manifest: {
-                name: 'Games',
-                short_name: 'Games',
+                name: 'Гульні Якуба Коласа',
+                short_name: 'Гульні',
                 start_url: './',
                 display: 'standalone',
                 background_color: "#152937",

@@ -42,6 +42,11 @@ const DEFAULT_COLORS: ColorInfo[] = [
 const defaultImages = [
   './drawing/pic-01.jpg',
   './drawing/pic-02.jpg',
+  './drawing/pic-03.jpg',
+  './drawing/pic-04.jpg',
+  './drawing/pic-05.jpg',
+  './drawing/pic-06.jpg',
+  './drawing/pic-07.jpg',
 ];
 
 const images = defaultImages;
@@ -257,6 +262,8 @@ const ColoringBookDeep = () => {
     const imgNaturalWidth = img.naturalWidth || 400;
     const imgNaturalHeight = img.naturalHeight || 400;
 
+    console.log({imgNaturalWidth, imgNaturalHeight})
+
     finalCanvas.width = imgNaturalWidth;
     finalCanvas.height = imgNaturalHeight;
     drawingCanvas.width = imgNaturalWidth;
@@ -276,6 +283,7 @@ const ColoringBookDeep = () => {
   };
 
   const analyzeImageForAllowedPixels = (width: number, height: number) => {
+    console.log(width, height)
     const img = imgRef.current;
     if (!img) return;
 
@@ -325,9 +333,24 @@ const ColoringBookDeep = () => {
 
     if (!drawingCanvas || !img || !wrapper) return { x: 0, y: 0, c: currentColor, s: brushSize };
 
+    // Handle both React synthetic events and DOM events
+    const clientX = 'clientX' in e ? e.clientX : ('touches' in e && e.touches[0] ? e.touches[0].clientX : 0);
+    const clientY = 'clientY' in e ? e.clientY : ('touches' in e && e.touches[0] ? e.touches[0].clientY : 0);
+
+    // Get canvas position relative to viewport
+    const rect = drawingCanvas.getBoundingClientRect();
+
+    // Calculate scale factor
+    const scaleX = img.naturalWidth / img.width;
+    const scaleY = img.naturalHeight / img.height;
+
+    // Adjust coordinates for image scaling
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
+
     return {
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
+      x,
+      y,
       c: currentColor,
       s: brushSize,
     };
@@ -343,6 +366,7 @@ const ColoringBookDeep = () => {
     }
 
     const pos = getCursorPosition(e);
+    console.log("setDragging -< true")
     setDragging(true);
     setCurrentPath([pos]);
     drawPath([pos]);
@@ -393,13 +417,15 @@ const ColoringBookDeep = () => {
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length >= 3) return;
 
-    e.preventDefault();
     if (!dragging) return;
 
     const touch = e.touches[0];
     const pos = getCursorPosition(touch);
+    console.log(pos)
     setCurrentPath(prev => [...prev, pos]);
     drawPath([...currentPath, pos]);
+
+    e.preventDefault();
   };
 
   const handleTouchEnd = () => {
@@ -652,6 +678,7 @@ const ColoringBookDeep = () => {
                   onTouchStart={handleTouchStart}
                   onTouchMove={handleTouchMove}
                   onTouchEnd={handleTouchEnd}
+                  style={{ touchAction: 'none' }}
               />
             </div>
           </div>
