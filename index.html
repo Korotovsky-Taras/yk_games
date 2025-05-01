@@ -2,33 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="./favicon.ico" />
+    <link rel="icon" type="image/png" href="/yk_games/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Games</title>
 
-    <script>
-      (function() {
-        // Проверяем, есть ли сохраненный путь
-        const redirectPath = sessionStorage.getItem('redirectPath');
-        if (redirectPath) {
-          sessionStorage.removeItem('redirectPath');
-          const cleanPath = redirectPath.split('?')[0].split('#')[0];
-          // Если путь есть в нашем приложении, используем его для перенаправления
-          if ([
-            '/',
-            '/puzzle',
-            '/drawing',
-            '/memory',
-            '/memory/game'
-          ].indexOf(cleanPath) !== -1) {
-            history.replaceState(null, null, redirectPath);
-          }
-        }
-      })();
-    </script>
-    <script type="module" crossorigin src="./assets/index-cQ-OMW9G.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DW726xUX.css">
-  <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
+<!--    <script>-->
+<!--      (function() {-->
+<!--        // Проверяем, есть ли сохраненный путь-->
+<!--        const redirectPath = sessionStorage.getItem('redirectPath');-->
+<!--        if (redirectPath) {-->
+<!--          sessionStorage.removeItem('redirectPath');-->
+<!--          const cleanPath = redirectPath.split('?')[0].split('#')[0];-->
+<!--          // Если путь есть в нашем приложении, используем его для перенаправления-->
+<!--          if ([-->
+<!--            '/',-->
+<!--            '/puzzle',-->
+<!--            '/drawing',-->
+<!--            '/memory',-->
+<!--            '/memory/game'-->
+<!--          ].indexOf(cleanPath) !== -1) {-->
+<!--            history.replaceState(null, null, redirectPath);-->
+<!--          }-->
+<!--        }-->
+<!--      })();-->
+<!--    </script>-->
+    <script type="module" crossorigin src="/yk_games/assets/index-cQ-OMW9G.js"></script>
+    <link rel="stylesheet" crossorigin href="/yk_games/assets/index-DW726xUX.css">
+  <link rel="manifest" href="/yk_games/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/yk_games/registerSW.js"></script></head>
   <body>
     <div id="root"></div>
   </body>
