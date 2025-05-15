@@ -6,26 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Games</title>
 
-    <script>
-      (function() {
-        // Проверяем, есть ли сохраненный путь
-        const redirectPath = sessionStorage.getItem('redirectPath');
-        if (redirectPath) {
-          sessionStorage.removeItem('redirectPath');
-          const cleanPath = redirectPath.split('?')[0].split('#')[0];
-          // Если путь есть в нашем приложении, используем его для перенаправления
-          if ([
-            '/',
-            '/puzzle',
-            '/drawing',
-            '/memory',
-            '/memory/game'
-          ].indexOf(cleanPath) !== -1) {
-            history.replaceState(null, null, redirectPath);
-          }
-        }
-      })();
-    </script>
+<!--    <script>-->
+<!--      (function() {-->
+<!--        // Проверяем, есть ли сохраненный путь-->
+<!--        const redirectPath = sessionStorage.getItem('redirectPath');-->
+<!--        if (redirectPath) {-->
+<!--          sessionStorage.removeItem('redirectPath');-->
+<!--          const cleanPath = redirectPath.split('?')[0].split('#')[0];-->
+<!--          // Если путь есть в нашем приложении, используем его для перенаправления-->
+<!--          if ([-->
+<!--            '/',-->
+<!--            '/puzzle',-->
+<!--            '/drawing',-->
+<!--            '/memory',-->
+<!--            '/memory/game'-->
+<!--          ].indexOf(cleanPath) !== -1) {-->
+<!--            history.replaceState(null, null, redirectPath);-->
+<!--          }-->
+<!--        }-->
+<!--      })();-->
+<!--    </script>-->
   </head>
   <body>
     <div id="root"></div>

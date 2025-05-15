@@ -1,7 +1,4 @@
-// src/utils/pwa.ts
-/**
- * Утилиты для работы с PWA (Progressive Web Application)
- */
+import { initNetworkStatusTracking, precacheImportantResources } from './networkStatus';
 
 /**
  * Регистрация Service Worker для работы PWA
@@ -58,15 +55,24 @@ export const updateServiceWorker = async (): Promise<boolean> => {
  * Обработка статуса онлайн/офлайн
  */
 export const handleOfflineStatus = (): void => {
-  // Обновляем состояние онлайн/офлайн
+  // Инициализируем отслеживание сетевого статуса
+  const networkTracking = initNetworkStatusTracking();
+  
+  // Прекэшируем важные ресурсы для офлайн-режима
+  if (navigator.onLine) {
+    precacheImportantResources().then(success => {
+      if (success) {
+        console.log('Важные ресурсы предварительно загружены в кэш');
+      }
+    });
+  }
+
+  // Дополнительные действия при изменении статуса подключения
   const updateOnlineStatus = () => {
-    const status = navigator.onLine ? 'online' : 'offline';
-    console.log(`Приложение ${status}`);
-    
     // Если переходим в офлайн, сохраняем путь для возможного восстановления
     if (!navigator.onLine) {
       // Сохраняем текущий путь
-      sessionStorage.setItem('lastPath', window.location.pathname);
+      sessionStorage.setItem('lastPath', window.location.pathname + window.location.hash);
     }
   };
 
@@ -100,4 +106,92 @@ export const clearAllCaches = async (): Promise<boolean> => {
     }
   }
   return false;
+};
+
+/**
+ * Обновление кэша приложения
+ * Отправляет сообщение Service Worker для обновления всех кэшированных ресурсов
+ */
+export const updateAppCache = async (): Promise<{ success: boolean; message?: string }> => {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    try {
+      const messageChannel = new MessageChannel();
+      
+      const updatePromise = new Promise<{ success: boolean, message?: string }>((resolve) => {
+        messageChannel.port1.onmessage = (event) => {
+          if (event.data.success) {
+            resolve({ success: true, message: 'Кэш успешно обновлен' });
+          } else {
+            resolve({ 
+              success: false, 
+              message: event.data.error || 'Ошибка при обновлении кэша' 
+            });
+          }
+        };
+      });
+      
+      // Отправляем сообщение для обновления кэша
+      navigator.serviceWorker.controller.postMessage(
+        { type: 'UPDATE_CACHE' },
+        [messageChannel.port2]
+      );
+      
+      // Устанавливаем тайм-аут в 30 секунд
+      const timeoutPromise = new Promise<{ success: boolean, message: string }>((resolve) => {
+        setTimeout(() => {
+          resolve({ success: false, message: 'Истекло время ожидания обновления' });
+        }, 30000);
+      });
+      
+      // Возвращаем результат первого завершившегося промиса
+      return Promise.race([updatePromise, timeoutPromise]);
+    } catch (error) {
+      console.error('Ошибка при обновлении кэша:', error);
+      return { success: false, message: 'Ошибка связи с Service Worker' };
+    }
+  }
+  
+  return { success: false, message: 'Service Worker не контролирует страницу' };
+};
+
+/**
+ * Функция для принудительного кэширования конкретного URL
+ */
+export const forceCacheResource = async (url: string): Promise<{ success: boolean; message?: string }> => {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    try {
+      const messageChannel = new MessageChannel();
+      
+      const cachePromise = new Promise<{ success: boolean, message?: string }>((resolve) => {
+        messageChannel.port1.onmessage = (event) => {
+          if (event.data.success) {
+            resolve({ success: true, message: `Ресурс ${url} успешно кэширован` });
+          } else {
+            resolve({ 
+              success: false, 
+              message: event.data.error || `Ошибка при кэшировании ${url}` 
+            });
+          }
+        };
+      });
+      
+      navigator.serviceWorker.controller.postMessage(
+        { type: 'FORCE_CACHE', url },
+        [messageChannel.port2]
+      );
+      
+      const timeoutPromise = new Promise<{ success: boolean, message: string }>((resolve) => {
+        setTimeout(() => {
+          resolve({ success: false, message: 'Истекло время ожидания кэширования' });
+        }, 10000);
+      });
+      
+      return Promise.race([cachePromise, timeoutPromise]);
+    } catch (error) {
+      console.error(`Ошибка при кэшировании ${url}:`, error);
+      return { success: false, message: 'Ошибка связи с Service Worker' };
+    }
+  }
+  
+  return { success: false, message: 'Service Worker не контролирует страницу' };
 };

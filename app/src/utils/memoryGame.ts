@@ -1,9 +1,39 @@
 import { MemorySettings } from '~/utils/memoryConfig';
 
+export const CardIcons = {
+  '0': 'image-01.png',
+  '1': 'image-02.png',
+  '2': 'image-03.png',
+  '3': 'image-04.png',
+  '4': 'image-05.png',
+  '5': 'image-06.png',
+  '6': 'image-07.png',
+  '7': 'image-08.png',
+  '8': 'image-09.png',
+  '9': 'image-10.png',
+  '10': 'image-11.png',
+  '11': 'image-12.png',
+  '12': 'image-13.png',
+  '13': 'image-14.png',
+  '14': 'image-15.png',
+  '15': 'image-16.png',
+  '16': 'image-17.png',
+  '17': 'image-18.png',
+  '18': 'image-19.png',
+  '19': 'image-20.png',
+  '20': 'image-21.png',
+  '21': 'image-22.png',
+  '22': 'image-23.png',
+  '23': 'image-24.png',
+  '24': 'image-25.png',
+  '25': 'image-26.png',
+}
+
 export type Card = {
   id: string;
   value: string;
   state: 'hidden' | 'revealed' | 'visible';
+  iconUrl: string;
   color?: string;
 };
 
@@ -59,22 +89,23 @@ export function getPlayers(settings: MemorySettings) {
   return players;
 }
 
+function getRandomIconKeys(count: number): string[] {
+  const allKeys = Object.keys(CardIcons);
+  const shuffled = [...allKeys].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
 export function getCards(pairs: number): Card[] {
   const cards: Card[] = [];
-  for (let i = 0; i < pairs; i++) {
-    const value = i.toString();
-    cards.push({
-      id: value + '-1',
-      value,
-      state: 'hidden',
-    });
-    cards.push({
-      id: value + '-2',
-      value,
-      state: 'hidden',
-    });
-  }
+  const randomIconKeys = getRandomIconKeys(pairs);
 
+  for (const iconKey of randomIconKeys) {
+    const iconUrl = CardIcons[iconKey as keyof typeof CardIcons];
+    cards.push(
+        { id: `${iconKey}-1`, value: iconKey, state: 'hidden', iconUrl },
+        { id: `${iconKey}-2`, value: iconKey, state: 'hidden', iconUrl }
+    );
+  }
   return cards;
 }
 

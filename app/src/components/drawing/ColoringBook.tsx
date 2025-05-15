@@ -47,6 +47,8 @@ const defaultImages = [
   './drawing/pic-05.jpg',
   './drawing/pic-06.jpg',
   './drawing/pic-07.jpg',
+  './drawing/pic-08.jpg',
+  './drawing/pic-09.jpg',
 ];
 
 const images = defaultImages;
@@ -211,38 +213,29 @@ const ColoringBookDeep = () => {
       return;
     }
 
-    let size = brushSize;
-    if (size < minBrushSize) size = minBrushSize;
-    if (size > maxBrushSize) size = maxBrushSize;
+    let size = Math.max(minBrushSize, Math.min(brushSize, maxBrushSize));
 
+    const canvasSize = size * 2;
     const canvas = document.createElement('canvas');
-    canvas.width = 32;
-    canvas.height = 32;
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
 
     const context = canvas.getContext('2d');
     if (!context) return;
 
+    const center = canvasSize / 2;
     context.beginPath();
-    context.arc(16, 16, size / 2, 0, 2 * Math.PI, false);
+    context.arc(center, center, size/2, 0, 2 * Math.PI, false);
 
     const colorIndex = currentColor >= 0 && currentColor < colors.length ? currentColor : 0;
     context.fillStyle = colors[colorIndex].color;
-
     context.fill();
-    context.strokeStyle = 'black';
-    context.lineWidth = 1;
-    context.stroke();
-
     context.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-    context.beginPath();
-    context.moveTo(0, 16);
-    context.lineTo(32, 16);
-    context.moveTo(16, 0);
-    context.lineTo(16, 32);
     context.stroke();
 
     const url = canvas.toDataURL();
-    setCursor(`url(${url}) 16 16, pointer`);
+
+    setCursor(`url(${url}) ${center} ${center}, pointer`);
   };
 
   const handleImageLoad = () => {
@@ -631,7 +624,7 @@ const ColoringBookDeep = () => {
 
   return (
       <>
-        <div className="flex-1 flex flex-col h-full pr-[80px] pb-[100px]">
+        <div className="flex-1 flex flex-col h-full mr-[80px] mb-[70px]">
           {/* Верхняя панель для выбора изображений */}
           {images && images.length > 1 && (
               <div className="flex flex-wrap justify-center mb-2">
@@ -652,7 +645,7 @@ const ColoringBookDeep = () => {
           {/* Область канваса */}
           <div className="flex-1 relative overflow-hidden flex justify-center items-center" ref={canvasContainerRef}>
             <div
-                className="absolute transform origin-center"
+                className="absolute transform origin-center h-full"
                 style={{ cursor: cursor }}
                 ref={wrapperRef}
             >

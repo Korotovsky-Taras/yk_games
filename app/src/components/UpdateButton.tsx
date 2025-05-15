@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from './Button';
-import { clearAllCaches, updateServiceWorker, registerServiceWorker } from '~/utils/pwa';
+import { clearAllCaches, updateServiceWorker, registerServiceWorker, updateAppCache } from '~/utils/pwa';
 
 export function UpdateButton() {
   const [isOnline, setIsOnline] = useState(false);
@@ -33,18 +33,20 @@ export function UpdateButton() {
       setIsUpdating(true);
       setUpdateStatus('Ачыстка кэша...');
 
-      // Очищаем все кэши
-      await clearAllCaches();
+      // Сначала пробуем использовать Service Worker для обновления кэша
+      const updateResult = await updateAppCache();
+      
+      if (!updateResult.success) {
+        console.log('Не удалось обновить кэш через Service Worker, пробуем вручную');
+        await clearAllCaches();
+      }
       
       setUpdateStatus('Абнаўленне ...');
-      // Обновляем Service Worker
       await updateServiceWorker();
       
       setUpdateStatus('Перазагрузка ...');
-      // Повторно регистрируем Service Worker для гарантии
       await registerServiceWorker();
 
-      // Перезагружаем страницу для применения изменений
       setTimeout(() => {
         window.location.reload();
       }, 1000);

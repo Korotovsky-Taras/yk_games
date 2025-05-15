@@ -1,7 +1,6 @@
 import clsx from 'clsx';
 import { ComponentProps } from 'react';
 import { Card } from '~/utils/memoryGame';
-import { Icon } from './Icon';
 
 type Props = {
   card: Card;
@@ -35,10 +34,7 @@ export function GridCard({ card, size = 'normal', onClick, ...rest }: Props) {
       >
         <div className="backface-hidden absolute flex h-full w-full items-center justify-center rounded-[50%]"></div>
         <div className="backface-hidden transform-rotate-y-180 absolute flex h-full w-full items-center justify-center rounded-[16px] shadow-[inset_0_0_0_100px]">
-          <Icon
-            iconId={card.value}
-            className={'w-full h-full max-w-[95%] max-h-[95%] rounded-[14px]'}
-          />
+         <img src={`./memory/${card.iconUrl}`} alt={card.value} className={'w-full h-full max-w-[95%] max-h-[95%] rounded-[14px]'} />
         </div>
       </div>
     </button>

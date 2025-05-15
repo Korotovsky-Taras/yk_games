@@ -6,8 +6,8 @@
     "deploy": "npm run build:puzzle && npm run deploy:app"
   },
   "devDependencies": {
-    "vite": "^5.0.0",
     "concurrently": "^8.0.0",
-    "gh-pages": "^6.3.0"
+    "gh-pages": "^6.3.0",
+    "vite": "^5.0.0"
   }
 }
